@@ -1,12 +1,10 @@
 plugins {
     id 'com.android.library'
+    id 'signing'       //插件发布
     id 'maven-publish'
-    id 'signing'
 }
 
-// maven插件
-/*apply plugin: ''
-apply plugin: 'signing'*/
+def VERSION = "1.0.1"
 
 android {
     compileSdk 32
@@ -26,47 +24,141 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
-
-
 }
 
-//添加maven publish 的脚本
-publishing  {
+// Because the components are created only during the afterEvaluate phase, you must
+// configure your publications using the afterEvaluate() lifecycle method.
+// 添加maven publish 的脚本
+afterEvaluate {
+    publishing {
 
-    publications{
-        groupId 'io.github.Mr0tian' //开通maven central时候定义的
-        artifactId 'spanutil-lib' //资源名称
-        version '0.0.1' //版本名称
-        pom {
-            name = 'spanutil-lib'
-            description = 'SpanUtil library'
-            url = 'https://github.com/Mr0tian/SpanUtil-library'
-            inceptionYear = '2022'
-        }
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
 
-        scm {
-            url = 'https://github.com/Mr0tian/SpanUtil-library'
-            connection = 'scm:git@https://github.com/Mr0tian/SpanUtil-library.git'
-            developerConnection = 'scm:git@https://github.com/Mr0tian/SpanUtil-library.git'
-        }
+                // You can then customize attributes of the publication as shown below.
+                groupId = GROUP_ID //开通maven central时定义的
+                artifactId = ARTIFACT_ID //资源名称
+                version = VERSION_NAME
+                pom {
+                    name = 'spanutil-lib'
+                    description = 'spanutil lib'
+                    url = 'https://github.com/Mr0tian/SpanUtil-library'
+                    inceptionYear = '2022'
+                    licenses {
+                        license {
+                            name = 'The Apache Software License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'tian2022'
+                            name = 'tian2022'
+                            email = '596893301@qq.com'
+                        }
+                    }
+                    scm {
+                        url = 'https://github.com/Mr0tian/SpanUtil-library'
+                        connection = 'scm:git@https://github.com/Mr0tian/SpanUtil-library.git'
+                        developerConnection = 'scm:git@https://github.com/Mr0tian/SpanUtil-library.git'
+                    }
 
+                    issueManagement {
+                        system = 'Github'
+                        url = 'https://github.com/Mr0tian/SpanUtil-library'
+                    }
+                    artifact generateSourcesJar //需要上传的source jar
+                    artifact generateJavadoc //需要上传的java doc
+                    artifact makeJar //需要上传的资源jar路径或者是aar路径，这边可以填写一个生成jar的task，如makeJar方法就是一个生成jar的task
 
+                }
+            }
+            // Creates a Maven publication called “debug”.
+            debug(MavenPublication) {
+                // Applies the component for the debug build variant.
+                from components.debug
 
-        licenses {
-            license {
-                name = 'The Apache Software License, Version 2.0'
-                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                distribution = 'repo'
-                comments = 'A business-friendly OSS license'
+                groupId = GROUP_ID//开通maven central时候定义的
+                artifactId = ARTIFACT_ID//资源名称
+                version = String.format("%s-SNAPSHOT", VERSION_NAME)
+
+                pom {
+                    name = 'spanutil-lib'
+                    description = 'SpanUtil library'
+                    url = 'https://github.com/Mr0tian/SpanUtil-library'
+                    inceptionYear = '2022'
+                    licenses {
+                        license {
+                            name = 'The Apache Software License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'tian2022'
+                            name = 'tian2022'
+                            email = '596893301@qq.com'
+                            url = 'https://github.com/Mr0tian/SpanUtil-library'
+                        }
+                    }
+                    scm {
+                        url = 'https://github.com/Mr0tian/SpanUtil-library'
+                        connection = 'scm:git@https://github.com/Mr0tian/SpanUtil-library.git'
+                        developerConnection = 'scm:git@https://github.com/Mr0tian/SpanUtil-library.git'
+                    }
+
+                    issueManagement {
+                        system = 'Github'
+                        url = 'https://github.com/Mr0tian/SpanUtil-library'
+                    }
+                    artifact generateSourcesJar //需要上传的source jar
+                    artifact generateJavadoc //需要上传的java doc
+                    artifact makeJar //需要上传的资源jar路径或者是aar路径，这边可以填写一个生成jar的task，如makeJar方法就是一个生成jar的task
+
+                }
             }
         }
 
+        repositories {
+//            maven {
+//                name "local"
+//                // change to point to your repo, e.g. http://my.org/repo
+//                url = "$buildDir/repo"
+//            }
+            maven {
+                // 指定要上传的maven仓库
+                name "sonartype-Staging"
+                // change to point to your repo, e.g. http://my.org/repo
+                url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+                //  https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/
+                credentials {
+                    username = ossrhUsername
+                    password = ossrhPassword
+                }
+            }
+//            // 定义snapshot仓库
+//            maven {
+//                name "sonatype-Snapshots"
+//                // change to point to your repo, e.g. http://my.org/repo
+//                url = "https://oss.sonatype.org/content/repositories/snapshots/"
+//                credentials {
+//                    username = ossrhUsername
+//                    password = ossrhPassword
+//                }
+//            }
+        }
 
+
+        signing {
+            sign publishing.publications.release, publishing.publications.debug
+        }
     }
-
 }
 
 
@@ -77,4 +169,8 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+}
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
