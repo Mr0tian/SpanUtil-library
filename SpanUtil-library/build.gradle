@@ -27,7 +27,21 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+
+    task javadoc(type: Javadoc){
+        source = android.sourceSets.main.java.srcDirs
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator)) + configurations.implementation
+
+    }
+
+
+
 }
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('maven.properties').newDataInputStream())
+
 
 // Because the components are created only during the afterEvaluate phase, you must
 // configure your publications using the afterEvaluate() lifecycle method.
